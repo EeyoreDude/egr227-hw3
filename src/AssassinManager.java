@@ -1,10 +1,17 @@
-import java.nio.channels.AsynchronousServerSocketChannel;
 import java.util.List;
+
+/**
+ * Collaborated with: Dalton Adcock
+ */
 
 public class AssassinManager {
     AssassinNode root;
     AssassinNode grave;
 
+    /**
+     * The constructor. Takes a list of names and initializes the kill ring of nodes.
+     * @param names a list of names
+     */
     public AssassinManager(List<String> names) {
         if(names.isEmpty())
             throw new IllegalArgumentException("The list of names is either empty or null");
@@ -12,6 +19,12 @@ public class AssassinManager {
         grave = null;
     }
 
+    /**
+     * The helper method for the constructor
+     * Takes a list of names and recursively creates the kill ring
+     * @param names a list of names
+     * @return either itself (recursively iterating to the next node), or a new node that points to null (for the final node)
+     */
     private AssassinNode createKillRing(List<String> names) {
             if (names.size() > 1)
                 return new AssassinNode(names.get(0), createKillRing(names.subList(1, names.size())));
@@ -19,10 +32,18 @@ public class AssassinManager {
                 return new AssassinNode(names.get(0));
     }
 
+    /**
+     * Prints each living participant and who their target is
+     */
     public void printKillRing(){
        stalkList(root);
     }
 
+    /**
+     * A helper method for printKillRing
+     * Takes in a starting node and recursively iterates to the end of the chain, printing each node's name and their target's name
+     * @param currNode a starting node
+     */
     private void stalkList(AssassinNode currNode){
         if(root.next == null)
             System.out.println("    " + currNode.name + " won the game!");
@@ -34,10 +55,18 @@ public class AssassinManager {
         }
     }
 
+    /**
+     * Prints each dead participant and who their killer is
+     */
     public void printGraveyard(){
         graveList(grave);
     }
 
+    /**
+     * The helper method for printGraveyard
+     * Takes in a starting node and recursively iterates to the end of the chain, printing each node's name and their killer's name
+     * @param currNode a starting node
+     */
     private void graveList(AssassinNode currNode){
         if(currNode != null) {
             if (currNode.next == null)
@@ -50,14 +79,31 @@ public class AssassinManager {
 
     }
 
+    /**
+     * Returns whether or not the kill ring contains a name
+     * @param name the name to be searched
+     * @return true if the kill ring contains the name, false if otherwise
+     */
     public boolean killRingContains(String name){
         return contains(root, name);
     }
 
+    /**
+     * Returns whether or not the graveyard contains a name
+     * @param name the name to be searched
+     * @return true if the graveyard contains the name, false if otherwise
+     */
     public boolean graveyardContains(String name){
         return contains(grave, name);
     }
 
+    /**
+     * The helper method for killRingContains and graveyardContains
+     * Recursively searches a node chain for a given name, starting at the given node
+     * @param currNode a starting node
+     * @param name the name to be searched
+     * @return true if the chain contains the name, false if otherwise
+     */
     private boolean contains(AssassinNode currNode, String name){
         if(currNode == null)
             return false;
@@ -67,10 +113,18 @@ public class AssassinManager {
             return contains(currNode.next, name);
     }
 
+    /**
+     * Returns whether or not the game is over
+     * @return true if the game is over, false if it is not
+     */
     public boolean isGameOver(){
         return root.next == null;
     }
 
+    /**
+     * Returns the name of the winner, if one is present
+     * @return the name of the winner, or null if the game is not over
+     */
     public String winner(){
         if(isGameOver())
             return root.name;
@@ -78,6 +132,13 @@ public class AssassinManager {
             return null;
     }
 
+    /**
+     * Sends the name to the graveyard
+     * Assigns the name's target to the name's killer
+     * Throws an error if the game is over
+     * Throws an error if the name is not a part of the kill ring
+     * @param name the name to kill
+     */
     public void kill(String name){
         if(isGameOver())
             throw new IllegalStateException("The game is over.");
@@ -87,6 +148,16 @@ public class AssassinManager {
         killName(root, name);
     }
 
+    /**
+     * The helper method for kill
+     * Recursively searches through a chain until it finds the person who's target is the name to be killed
+     * Sets the dead person's killer to the person who killed them
+     * Gives the dead person's target to the killer
+     * Moves the dead person to the front of the graveyard
+     * Handles all special cases (like killing the root node)
+     * @param currNode a starting node
+     * @param name the name to kill
+     */
     private void killName(AssassinNode currNode, String name){
         if(currNode.next == null){ // if the killer is the last in the list (the root died)
             root.killer = currNode.name; // make the current person the killer of the root
@@ -107,7 +178,7 @@ public class AssassinManager {
                 tempNode.next = null; // make the dead person point to null
                 grave = tempNode; // make the dead person the root of the graveyard
             } else {
-                tempNode.next = grave; //
+                tempNode.next = grave;
                 grave = tempNode;
             }
         } else
